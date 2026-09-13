@@ -1,6 +1,6 @@
-# [Project name]
+# Northstar AI Platform Blueprint
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An operational cockpit for designing and governing a repeatable Azure AI platform.
 
 ## Run & Operate
 
@@ -22,15 +22,23 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/ai-platform-blueprint` — responsive architecture cockpit and decision log
+- `artifacts/api-server/src/routes/platform.ts` — platform overview, capability, control, roadmap, and decision APIs
+- `lib/api-spec/openapi.yaml` — source of truth for the platform API contract
+- `lib/db/src/schema/architecture-decisions.ts` — persisted decision status model
+- `lib/api-client-react/src/generated` — generated client hooks; regenerate from OpenAPI after contract changes
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first slice is an architecture cockpit rather than a provider-specific AI workload; model selection remains an explicit decision.
+- Azure, Entra, APIM/Boomi, UK/EU residency, and the existing security/observability tools are represented as platform capabilities and controls.
+- Architecture decision statuses persist in PostgreSQL so the decision log remains an agreement surface across reloads.
+- The API contract is OpenAPI-first; generated React Query hooks are the only frontend API surface.
+- The frontend uses a fixed desktop navigation shell so the primary workspace remains visible while the user moves through the blueprint.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Users can review platform readiness, inspect capability layers, filter governance controls, sequence delivery phases, and update architecture decision status. The initial content is a deliberately small reference baseline for the Azure enterprise stack and should be replaced or extended with approved service and control evidence.
 
 ## User preferences
 
@@ -38,7 +46,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After changing `lib/api-spec/openapi.yaml`, run `pnpm --filter @workspace/api-spec run codegen` before using generated hooks or schemas.
+- `lib/api-client-react` needs `dom.iterable` in its TypeScript library list because the generated fetch client reads `Headers.entries()`.
+- Use the managed artifact workflows for preview; do not start artifact dev servers from the workspace root.
 
 ## Pointers
 

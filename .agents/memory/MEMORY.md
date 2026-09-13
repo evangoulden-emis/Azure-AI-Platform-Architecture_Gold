@@ -1,0 +1,1 @@
+- [Fixed navigation layout](platform-layout.md) — full-height desktop navigation must not push the primary workspace below the first viewport.

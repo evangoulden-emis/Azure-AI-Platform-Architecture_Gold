@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: platform
+    description: Azure AI platform blueprint operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,100 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /platform/overview:
+    get:
+      operationId: getPlatformOverview
+      tags: [platform]
+      summary: Get the current platform overview
+      responses:
+        "200":
+          description: Platform overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformOverview"
+  /platform/capabilities:
+    get:
+      operationId: listPlatformCapabilities
+      tags: [platform]
+      summary: List platform capability layers
+      responses:
+        "200":
+          description: Capability layers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformCapability"
+  /platform/controls:
+    get:
+      operationId: listPlatformControls
+      tags: [platform]
+      summary: List platform controls
+      responses:
+        "200":
+          description: Platform controls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformControl"
+  /platform/roadmap:
+    get:
+      operationId: listPlatformRoadmap
+      tags: [platform]
+      summary: List platform roadmap work
+      responses:
+        "200":
+          description: Roadmap work
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoadmapItem"
+  /platform/decisions:
+    get:
+      operationId: listArchitectureDecisions
+      tags: [platform]
+      summary: List architecture decisions
+      responses:
+        "200":
+          description: Architecture decisions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArchitectureDecision"
+  /platform/decisions/{decisionId}:
+    patch:
+      operationId: updateArchitectureDecision
+      tags: [platform]
+      summary: Update an architecture decision status
+      parameters:
+        - name: decisionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArchitectureDecisionUpdate"
+      responses:
+        "200":
+          description: Updated architecture decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArchitectureDecision"
+        "404":
+          description: Decision not found
 components:
   schemas:
     HealthStatus:
@@ -33,4 +129,159 @@ components:
           type: string
       required:
         - status
+    PlatformOverview:
+      type: object
+      required:
+        - platformName
+        - environment
+        - regionPolicy
+        - readinessScore
+        - activeUsers
+        - capabilityCount
+        - controlCount
+        - roadmapCount
+        - nextMilestone
+        - lastReviewed
+      properties:
+        platformName:
+          type: string
+        environment:
+          type: string
+        regionPolicy:
+          type: string
+        readinessScore:
+          type: integer
+        activeUsers:
+          type: integer
+        capabilityCount:
+          type: integer
+        controlCount:
+          type: integer
+        roadmapCount:
+          type: integer
+        nextMilestone:
+          type: string
+        lastReviewed:
+          type: string
+    PlatformCapability:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - status
+        - owner
+        - services
+        - readiness
+        - accent
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        owner:
+          type: string
+        services:
+          type: array
+          items:
+            type: string
+        readiness:
+          type: integer
+        accent:
+          type: string
+    PlatformControl:
+      type: object
+      required:
+        - id
+        - name
+        - category
+        - description
+        - status
+        - owner
+        - evidence
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        owner:
+          type: string
+        evidence:
+          type: string
+    RoadmapItem:
+      type: object
+      required:
+        - id
+        - phase
+        - title
+        - description
+        - status
+        - horizon
+        - owner
+        - dependencies
+      properties:
+        id:
+          type: string
+        phase:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        horizon:
+          type: string
+        owner:
+          type: string
+        dependencies:
+          type: array
+          items:
+            type: string
+    ArchitectureDecision:
+      type: object
+      required:
+        - id
+        - title
+        - area
+        - recommendation
+        - rationale
+        - status
+        - owner
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        area:
+          type: string
+        recommendation:
+          type: string
+        rationale:
+          type: string
+        status:
+          type: string
+        owner:
+          type: string
+    ArchitectureDecisionUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - Proposed
+            - Accepted
+            - Needs review
 
