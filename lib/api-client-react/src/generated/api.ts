@@ -22,7 +22,11 @@ import type {
 import type {
   ArchitectureDecision,
   ArchitectureDecisionUpdate,
+  DeletionEvidence,
+  GovernedResponse,
+  GovernedResponseInput,
   HealthStatus,
+  PilotEvidenceRegister,
   PlatformCapability,
   PlatformControl,
   PlatformOverview,
@@ -606,5 +610,244 @@ export const useUpdateArchitectureDecision = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getUpdateArchitectureDecisionMutationOptions(options));
+    }
+
+export const getCreateGovernedResponseUrl = () => {
+
+
+
+
+  return `/api/v1/responses`
+}
+
+/**
+ * @summary Execute the governed claims-assistant proof workload
+ */
+export const createGovernedResponse = async (governedResponseInput: GovernedResponseInput, options?: Parameters<typeof customFetch>[1]): Promise<GovernedResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<GovernedResponse>(getCreateGovernedResponseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(governedResponseInput)
+  }
+);}
+
+
+
+
+
+export const getCreateGovernedResponseMutationKey = () => ['createGovernedResponse'] as const;
+
+export const getCreateGovernedResponseMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGovernedResponse>>, TError,CreateGovernedResponseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createGovernedResponse>>, TError,CreateGovernedResponseMutationVariables, TContext> => {
+
+const mutationKey = getCreateGovernedResponseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createGovernedResponse>>, CreateGovernedResponseMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createGovernedResponse(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateGovernedResponseMutationResult = NonNullable<Awaited<ReturnType<typeof createGovernedResponse>>>
+    export type CreateGovernedResponseMutationBody = BodyType<GovernedResponseInput>
+    export type CreateGovernedResponseMutationError = ErrorType<void>
+    export type CreateGovernedResponseMutationVariables = {data: BodyType<GovernedResponseInput>}
+
+    /**
+ * @summary Execute the governed claims-assistant proof workload
+ */
+export const useCreateGovernedResponse = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGovernedResponse>>, TError,CreateGovernedResponseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createGovernedResponse>>,
+        TError,
+        CreateGovernedResponseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateGovernedResponseMutationOptions(options));
+    }
+
+export const getGetPilotEvidenceUrl = () => {
+
+
+
+
+  return `/api/platform/pilot/evidence`
+}
+
+/**
+ * @summary Get normalized control evidence for the pilot
+ */
+export const getPilotEvidence = async ( options?: Parameters<typeof customFetch>[1]): Promise<PilotEvidenceRegister> => {
+
+  return customFetch<PilotEvidenceRegister>(getGetPilotEvidenceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPilotEvidenceQueryKey = () => {
+    return [
+    `/api/platform/pilot/evidence`
+    ] as const;
+    }
+
+
+export const getGetPilotEvidenceQueryOptions = <TData = Awaited<ReturnType<typeof getPilotEvidence>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPilotEvidence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPilotEvidenceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPilotEvidence>>> = ({ signal }) => getPilotEvidence({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPilotEvidence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPilotEvidenceQueryResult = NonNullable<Awaited<ReturnType<typeof getPilotEvidence>>>
+export type GetPilotEvidenceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get normalized control evidence for the pilot
+ */
+
+export function useGetPilotEvidence<TData = Awaited<ReturnType<typeof getPilotEvidence>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPilotEvidence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPilotEvidenceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeletePilotRetrievalSourceUrl = (sourceId: string,) => {
+
+
+
+
+  return `/api/platform/pilot/retrieval/${sourceId}`
+}
+
+/**
+ * @summary Delete a pilot source and verify it is no longer retrievable
+ */
+export const deletePilotRetrievalSource = async (sourceId: string, options?: Parameters<typeof customFetch>[1]): Promise<DeletionEvidence> => {
+
+  return customFetch<DeletionEvidence>(getDeletePilotRetrievalSourceUrl(sourceId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeletePilotRetrievalSourceMutationKey = () => ['deletePilotRetrievalSource'] as const;
+
+export const getDeletePilotRetrievalSourceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePilotRetrievalSource>>, TError,DeletePilotRetrievalSourceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePilotRetrievalSource>>, TError,DeletePilotRetrievalSourceMutationVariables, TContext> => {
+
+const mutationKey = getDeletePilotRetrievalSourceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePilotRetrievalSource>>, DeletePilotRetrievalSourceMutationVariables> = (props) => {
+          const {sourceId} = props ?? {};
+
+          return  deletePilotRetrievalSource(sourceId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePilotRetrievalSourceMutationResult = NonNullable<Awaited<ReturnType<typeof deletePilotRetrievalSource>>>
+
+    export type DeletePilotRetrievalSourceMutationError = ErrorType<void>
+    export type DeletePilotRetrievalSourceMutationVariables = {sourceId: string}
+
+    /**
+ * @summary Delete a pilot source and verify it is no longer retrievable
+ */
+export const useDeletePilotRetrievalSource = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePilotRetrievalSource>>, TError,DeletePilotRetrievalSourceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deletePilotRetrievalSource>>,
+        TError,
+        DeletePilotRetrievalSourceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeletePilotRetrievalSourceMutationOptions(options));
     }
 

@@ -80,3 +80,11 @@ contract; Azure AI Foundry and provider SDKs remain behind it.
 `MODEL_ROUTE_UNAVAILABLE`, `SAFETY_BLOCKED`, `QUOTA_EXCEEDED`,
 `RETRIEVAL_ACCESS_DENIED`, `TOOL_NOT_ALLOWED`, `UPSTREAM_TIMEOUT`, and
 `PLATFORM_UNAVAILABLE`.
+
+## Executable non-production proof
+
+The `claims-assistant` harness implements this contract and its stable failures
+at `POST /api/v1/responses`. Its scope, evaluation, deletion test, telemetry,
+evidence, and rollback rules are documented in
+[`governed-workload-pilot.md`](governed-workload-pilot.md). It is a
+control-plane simulation, not evidence of live vendor connectivity.

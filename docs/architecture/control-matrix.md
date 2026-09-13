@@ -31,3 +31,8 @@ the control is implemented, tested, owned, and has current evidence.
 Evidence should be collected from credentialed service state, normalised into a
 structured representation, and evaluated against versioned rules. Manual
 screenshots may support a review but are not the primary control mechanism.
+
+The first normalized pilot evidence is exposed by
+`GET /api/platform/pilot/evidence` and interpreted in
+[`governed-workload-pilot.md`](governed-workload-pilot.md). Simulated evidence
+must be replaced by credentialed service-state collection before production.

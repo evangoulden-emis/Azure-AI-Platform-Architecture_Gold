@@ -77,3 +77,128 @@ export interface ArchitectureDecisionUpdate {
   status: ArchitectureDecisionUpdateStatus;
 }
 
+export type GovernedMessageRole = typeof GovernedMessageRole[keyof typeof GovernedMessageRole];
+
+
+export const GovernedMessageRole = {
+  user: 'user',
+} as const;
+
+export interface GovernedMessage {
+  role: GovernedMessageRole;
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
+  content: string;
+}
+
+export interface RetrievalInput {
+  index: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  top_k: number;
+  require_citations: boolean;
+}
+
+export interface ResponsePolicyInput {
+  /**
+     * @minimum 1
+     * @maximum 800
+     */
+  max_output_tokens: number;
+  human_review_on: string[];
+}
+
+export interface GovernedResponseInput {
+  workload_id: string;
+  model_route: string;
+  /**
+     * @minItems 1
+     * @maxItems 8
+     */
+  input: GovernedMessage[];
+  retrieval: RetrievalInput;
+  /** @maxItems 0 */
+  tools: string[];
+  response_policy: ResponsePolicyInput;
+}
+
+export interface Citation {
+  source_id: string;
+  title: string;
+}
+
+export type GovernedOutputType = typeof GovernedOutputType[keyof typeof GovernedOutputType];
+
+
+export const GovernedOutputType = {
+  text: 'text',
+} as const;
+
+export interface GovernedOutput {
+  type: GovernedOutputType;
+  text: string;
+}
+
+export interface SafetyResult {
+  status: string;
+  policy_version: string;
+  aidr_request: string;
+  aidr_response: string;
+  native_safety: string;
+}
+
+export interface Usage {
+  input_tokens: number;
+  output_tokens: number;
+  estimated_cost: number;
+}
+
+export interface GovernedResponse {
+  id: string;
+  status: string;
+  model_route: string;
+  output: GovernedOutput[];
+  citations: Citation[];
+  safety: SafetyResult;
+  usage: Usage;
+  trace_id: string;
+}
+
+export type EvidenceItemStatus = typeof EvidenceItemStatus[keyof typeof EvidenceItemStatus];
+
+
+export const EvidenceItemStatus = {
+  passed: 'passed',
+  pending: 'pending',
+} as const;
+
+export interface EvidenceItem {
+  control: string;
+  status: EvidenceItemStatus;
+  owner: string;
+  collected_at: string;
+  target: string;
+  rule_version: string;
+  evidence_hash: string;
+  summary: string;
+}
+
+export interface PilotEvidenceRegister {
+  workload_id: string;
+  environment: string;
+  mode: string;
+  evidence: EvidenceItem[];
+}
+
+export interface DeletionEvidence {
+  source_id: string;
+  deleted: boolean;
+  retrieval_matches_after_delete: number;
+  cache_entries_removed: number;
+  evidence_hash: string;
+}
+

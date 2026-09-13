@@ -118,3 +118,111 @@ export const UpdateArchitectureDecisionResponse = zod.object({
 })
 
 
+/**
+ * @summary Execute the governed claims-assistant proof workload
+ */
+export const CreateGovernedResponseHeader = zod.object({
+  "Authorization": zod.string(),
+  "x-api-version": zod.enum(['2026-09-01']),
+  "x-correlation-id": zod.string().optional()
+})
+
+export const createGovernedResponseBodyInputItemContentMax = 4000;
+
+export const createGovernedResponseBodyInputMax = 8;
+
+export const createGovernedResponseBodyRetrievalTopKMax = 5;
+
+export const createGovernedResponseBodyToolsMax = 0;
+
+export const createGovernedResponseBodyResponsePolicyMaxOutputTokensMax = 800;
+
+
+
+export const CreateGovernedResponseBody = zod.object({
+  "workload_id": zod.string(),
+  "model_route": zod.string(),
+  "input": zod.array(zod.object({
+  "role": zod.enum(['user']),
+  "content": zod.string().min(1).max(createGovernedResponseBodyInputItemContentMax)
+})).min(1).max(createGovernedResponseBodyInputMax),
+  "retrieval": zod.object({
+  "index": zod.string(),
+  "top_k": zod.number().int().min(1).max(createGovernedResponseBodyRetrievalTopKMax),
+  "require_citations": zod.boolean()
+}),
+  "tools": zod.array(zod.string()).max(createGovernedResponseBodyToolsMax),
+  "response_policy": zod.object({
+  "max_output_tokens": zod.number().int().min(1).max(createGovernedResponseBodyResponsePolicyMaxOutputTokensMax),
+  "human_review_on": zod.array(zod.string())
+})
+})
+
+export const CreateGovernedResponseResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.string(),
+  "model_route": zod.string(),
+  "output": zod.array(zod.object({
+  "type": zod.enum(['text']),
+  "text": zod.string()
+})),
+  "citations": zod.array(zod.object({
+  "source_id": zod.string(),
+  "title": zod.string()
+})),
+  "safety": zod.object({
+  "status": zod.string(),
+  "policy_version": zod.string(),
+  "aidr_request": zod.string(),
+  "aidr_response": zod.string(),
+  "native_safety": zod.string()
+}),
+  "usage": zod.object({
+  "input_tokens": zod.number().int(),
+  "output_tokens": zod.number().int(),
+  "estimated_cost": zod.number()
+}),
+  "trace_id": zod.string()
+})
+
+
+/**
+ * @summary Get normalized control evidence for the pilot
+ */
+export const GetPilotEvidenceResponse = zod.object({
+  "workload_id": zod.string(),
+  "environment": zod.string(),
+  "mode": zod.string(),
+  "evidence": zod.array(zod.object({
+  "control": zod.string(),
+  "status": zod.enum(['passed', 'pending']),
+  "owner": zod.string(),
+  "collected_at": zod.string(),
+  "target": zod.string(),
+  "rule_version": zod.string(),
+  "evidence_hash": zod.string(),
+  "summary": zod.string()
+}))
+})
+
+
+/**
+ * @summary Delete a pilot source and verify it is no longer retrievable
+ */
+export const DeletePilotRetrievalSourceParams = zod.object({
+  "sourceId": zod.coerce.string()
+})
+
+export const DeletePilotRetrievalSourceHeader = zod.object({
+  "Authorization": zod.string()
+})
+
+export const DeletePilotRetrievalSourceResponse = zod.object({
+  "source_id": zod.string(),
+  "deleted": zod.boolean(),
+  "retrieval_matches_after_delete": zod.number().int(),
+  "cache_entries_removed": zod.number().int(),
+  "evidence_hash": zod.string()
+})
+
+
