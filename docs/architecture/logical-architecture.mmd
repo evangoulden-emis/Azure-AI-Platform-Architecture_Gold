@@ -1,0 +1,62 @@
+flowchart LR
+  subgraph Users["Users & channels"]
+    U[Internal users]
+    A[Approved applications]
+    S[Enterprise source systems]
+  end
+
+  subgraph Edge["Access boundary"]
+    E[Entra ID]
+    P[Azure API Management]
+    Z[Zscaler egress policy]
+  end
+
+  subgraph Platform["Northstar platform · private UK/EU deployment"]
+    O[Orchestration runtime\nFunctions / Durable Functions / Container Apps]
+    G[Policy engine\nidentity · redaction · safety · quota]
+    M[Model gateway\nversioned provider-neutral API]
+    R[Retrieval service\ningestion · index · citations]
+    T[Tool registry\nallow-listed enterprise capabilities]
+    K[Key Vault / managed identities]
+  end
+
+  subgraph Data["Governed data plane"]
+    B[ADLS Gen2 / Blob\nsource content]
+    I[Azure AI Search\napproved derived index]
+    D[Metadata & audit store]
+  end
+
+  subgraph Models["Approved model deployments"]
+    L[Model route TBC\nAzure OpenAI / other approved provider]
+  end
+
+  subgraph Ops["Trust & operations"]
+    OT[OpenTelemetry]
+    DY[Dynatrace]
+    CF[CrowdStrike AIDR\nintegration point]
+    AU[Audit / security evidence]
+  end
+
+  U --> E
+  A --> E
+  E --> P
+  P --> O
+  P -. approved egress .-> Z
+  O --> G
+  G --> M
+  G --> R
+  G --> T
+  O --> K
+  S --> P
+  S --> B
+  B --> R
+  R --> I
+  R --> D
+  M --> L
+  O --> OT
+  M --> OT
+  G --> OT
+  OT --> DY
+  OT --> CF
+  G --> AU
+  O --> AU

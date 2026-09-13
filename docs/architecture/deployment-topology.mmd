@@ -1,0 +1,45 @@
+flowchart TB
+  subgraph Tenant["Azure enterprise landing zone"]
+    subgraph Shared["Shared platform subscription · approved UK/EU region"]
+      APIM[APIM\nprivate ingress]
+      ID[Entra / managed identities]
+      KV[Key Vault]
+      OBS[OpenTelemetry + Log Analytics\nDynatrace export]
+    end
+
+    subgraph Runtime["AI platform subscription"]
+      FUN[Functions]
+      DUR[Durable Functions / Container Apps]
+      SEARCH[AI Search]
+      STORE[ADLS / Blob]
+      AUDIT[Audit and metering store]
+      MODEL[Approved model deployments]
+    end
+
+    subgraph Workloads["Workload resource groups · one per bounded workload"]
+      W1[Workload A\nAPI + evaluation]
+      W2[Workload B\nAPI + evaluation]
+      WN[Future workloads\nsame composition]
+    end
+
+    HUB[Hub / firewall / private DNS]
+    ZS[Zscaler\napproved outbound routes]
+  end
+
+  APIM --> HUB
+  HUB --> FUN
+  HUB --> DUR
+  HUB --> SEARCH
+  HUB --> STORE
+  HUB --> AUDIT
+  HUB --> MODEL
+  ID --> APIM
+  ID --> FUN
+  ID --> DUR
+  ID --> KV
+  FUN --> OBS
+  DUR --> OBS
+  W1 --> APIM
+  W2 --> APIM
+  WN --> APIM
+  HUB --> ZS
