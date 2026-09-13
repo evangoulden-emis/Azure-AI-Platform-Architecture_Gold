@@ -11,6 +11,7 @@ design; it is not a replacement for the design.
 - [Deployment topology](./deployment-topology.mmd)
 - [Control matrix](./control-matrix.md)
 - [Model gateway contract](./api-contract.md)
+- [Architecture source map](./source-map.md)
 - [Infrastructure module plan](../../infra/README.md)
 
 ## Status
@@ -25,12 +26,15 @@ owners.
 - Azure is the strategic cloud.
 - Workloads use serverless or managed compute by default.
 - Entra ID is the workforce and workload identity authority.
-- APIM is the public platform contract; Boomi remains the enterprise
-  integration option where it is already the system of record for integration.
+- Azure AI Foundry is the strategic corporate platform for approved models and
+  agents.
+- Boomi provides enterprise integration entry, subscription governance, and
+  cross-domain orchestration. APIM owns the AI-serving contract and token-aware
+  AI policy.
 - Data, prompts, embeddings, telemetry, and backups remain in approved UK/EU
   regions.
-- Model providers and model families remain TBC until the model evaluation,
-  data-processing, commercial, and residency review is complete.
+- Model families and deployment routes remain subject to evaluation,
+  data-processing, commercial, and residency review inside Azure AI Foundry.
 
 ## Enterprise context incorporated
 
@@ -42,6 +46,7 @@ including any SIPA bypass. It also established a useful compliance pattern:
 collect credentialed state, normalise it to structured data, and evaluate
 versioned rules.
 
-The accessible material did not establish AI, APIM, Boomi, Dynatrace,
-CrowdStrike, serverless, IaC, or data-residency standards. Those remain proposed
-architecture decisions in this pack.
+The broader AI workspace establishes Azure AI Foundry, Entra, Boomi, APIM,
+CrowdStrike AIDR, Zscaler ZIA, Dynatrace, and Terraform as the strategic
+direction. It also records open questions that this pack keeps visible rather
+than silently resolving.

@@ -30,8 +30,9 @@ An operational cockpit for designing and governing a repeatable Azure AI platfor
 
 ## Architecture decisions
 
-- The first slice is an architecture cockpit rather than a provider-specific AI workload; model selection remains an explicit decision.
-- Azure, Entra, APIM/Boomi, UK/EU residency, and the existing security/observability tools are represented as platform capabilities and controls.
+- Azure AI Foundry is the strategic platform for approved models and agents; individual model families and fallback routes remain governed decisions.
+- Entra is the identity authority; Boomi owns enterprise integration entry/governance; APIM owns the token-aware AI-serving and policy boundary.
+- CrowdStrike AIDR is an independent inline guardrail, Zscaler governs egress, Dynatrace receives operational telemetry, and Terraform is the IaC standard.
 - Architecture decision statuses persist in PostgreSQL so the decision log remains an agreement surface across reloads.
 - The API contract is OpenAPI-first; generated React Query hooks are the only frontend API surface.
 - The frontend uses a fixed desktop navigation shell so the primary workspace remains visible while the user moves through the blueprint.

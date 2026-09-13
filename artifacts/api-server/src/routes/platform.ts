@@ -28,13 +28,13 @@ const capabilities = [
   },
   {
     id: "model-gateway",
-    name: "Model gateway",
+    name: "AI serving gateway",
     description:
-      "A governed model access layer that keeps applications independent from provider-specific APIs.",
-    status: "Design in progress",
+      "APIM provides the token-aware AI policy boundary in front of Azure AI Foundry models and agents.",
+    status: "Strategic direction set",
     owner: "AI platform",
-    services: ["Azure OpenAI", "APIM", "Content safety"],
-    readiness: 58,
+    services: ["Azure AI Foundry", "APIM AI gateway", "CrowdStrike AIDR"],
+    readiness: 68,
     accent: "cyan",
   },
   {
@@ -50,9 +50,9 @@ const capabilities = [
   },
   {
     id: "integration-runtime",
-    name: "Integration runtime",
+    name: "Integration & runtime",
     description:
-      "Serverless workflows and enterprise integration contracts for repeatable AI application delivery.",
+      "Boomi governs enterprise integration entry while Azure serverless runtimes execute AI workflows.",
     status: "Ready to pilot",
     owner: "Integration engineering",
     services: ["Functions", "Durable Functions", "Boomi"],
@@ -63,7 +63,7 @@ const capabilities = [
     id: "trust-operations",
     name: "Trust & operations",
     description:
-      "Prompt and model telemetry, audit trails, threat detection, and operational feedback loops.",
+      "AIDR inspection, Zscaler egress policy, Dynatrace telemetry, audit trails, and operational feedback.",
     status: "Control mapping",
     owner: "Security operations",
     services: ["Dynatrace", "CrowdStrike AIDR", "Zscaler"],
@@ -106,11 +106,11 @@ const controls = [
   },
   {
     id: "model-guardrails",
-    name: "Model and prompt guardrails",
+    name: "Independent AI guardrails",
     category: "AI safety",
     description:
-      "Content safety, prompt filtering, sensitive data redaction, and model allow-listing apply centrally.",
-    status: "Draft",
+      "CrowdStrike AIDR runs inline at the AI gateway alongside native content safety, redaction, and model allow-listing.",
+    status: "Direction defined",
     owner: "Responsible AI",
     evidence: "Gateway policy catalogue",
   },
@@ -142,20 +142,20 @@ const roadmap = [
     phase: "01",
     title: "Establish the paved road",
     description:
-      "Ship the reference architecture, Entra patterns, APIM gateway contract, and IaC module baseline.",
+      "Confirm ownership and governance intake, then create the Terraform baseline for APIM and Azure AI Foundry.",
     status: "In progress",
-    horizon: "0–90 days",
+    horizon: "Days 0–30",
     owner: "AI platform",
-    dependencies: ["Security control baseline", "Model provider shortlist"],
+    dependencies: ["Platform ownership", "Boomi / APIM boundary"],
   },
   {
     id: "phase-2",
     phase: "02",
     title: "Prove a governed workload",
     description:
-      "Deliver one production-shaped use case with retrieval, evaluation, telemetry, and a clear rollback path.",
+      "Deploy non-production AIDR guardrails, pilot use cases, evaluation, telemetry, and the temporary AWS adapter.",
     status: "Next",
-    horizon: "90–180 days",
+    horizon: "Days 31–60",
     owner: "Product engineering",
     dependencies: ["Paved road", "Approved data domain"],
   },
@@ -164,9 +164,9 @@ const roadmap = [
     phase: "03",
     title: "Open self-service to teams",
     description:
-      "Publish golden-path templates, onboarding checks, quota policies, and reusable prompt and evaluation assets.",
+      "Move approved pilots to production and complete telemetry, registry, catalogue, and onboarding governance.",
     status: "Planned",
-    horizon: "6–12 months",
+    horizon: "Days 61–90",
     owner: "Developer platform",
     dependencies: ["Pilot learnings", "FinOps telemetry"],
   },
@@ -175,14 +175,25 @@ const roadmap = [
 const initialDecisions = [
   {
     id: "model-gateway",
-    title: "Use a central model gateway",
+    title: "Use APIM as the AI-serving gateway",
     area: "Model access",
     recommendation:
-      "Expose model access through a versioned APIM contract instead of direct provider calls from product teams.",
+      "Expose Azure AI Foundry models and agents through a versioned APIM AI gateway contract instead of direct calls.",
     rationale:
-      "Keeps provider changes, safety controls, quotas, cost attribution, and residency policy in one place.",
-    status: "Proposed",
+      "Keeps token-aware policy, AIDR inspection, quotas, routing, cost attribution, and safety enforcement in one place.",
+    status: "Accepted",
     owner: "AI platform",
+  },
+  {
+    id: "boomi-apim-boundary",
+    title: "Define the Boomi and APIM boundary",
+    area: "API & integration",
+    recommendation:
+      "Use Boomi for enterprise integration entry and orchestration, with APIM owning the AI-serving and model-policy boundary.",
+    rationale:
+      "Preserves the enterprise integration fabric without duplicating APIM's token-aware AI routing and guardrail role.",
+    status: "Needs review",
+    owner: "Integration engineering",
   },
   {
     id: "retrieval-service",
@@ -237,14 +248,19 @@ router.get("/platform/roadmap", (_req, res) => {
 });
 
 router.get("/platform/decisions", async (_req, res) => {
+  await db
+    .insert(architectureDecisionsTable)
+    .values(initialDecisions)
+    .onConflictDoNothing();
   const rows = await db.select().from(architectureDecisionsTable);
-  if (rows.length === 0) {
-    await db.insert(architectureDecisionsTable).values(initialDecisions);
-    const seeded = await db.select().from(architectureDecisionsTable);
-    res.json(ListArchitectureDecisionsResponse.parse(seeded));
-    return;
-  }
-  res.json(ListArchitectureDecisionsResponse.parse(rows));
+  const definitions = new Map(initialDecisions.map((decision) => [decision.id, decision]));
+  const current = rows.map((row) => {
+    const definition = definitions.get(row.id);
+    return definition
+      ? { ...row, ...definition, status: row.status, updatedAt: row.updatedAt }
+      : row;
+  });
+  res.json(ListArchitectureDecisionsResponse.parse(current));
 });
 
 router.patch("/platform/decisions/:decisionId", async (req, res) => {

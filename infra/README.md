@@ -51,11 +51,14 @@ Client Forwarding Policy behaviour.
 7. approval for production plan;
 8. deployment with drift detection and rollback metadata.
 
-## Authoring decision
+## Authoring standard
 
-Terraform versus Bicep is still **TBC**. Choose one primary authoring standard
-before creating production modules. Mixing both for the same resource boundary
-would make ownership and drift harder to operate.
+Terraform is the primary module authoring standard. The first 30-day baseline
+must establish APIM and Azure AI Foundry modules, then add Entra, private
+networking, AIDR policy, observability, and workload compositions. Bicep may be
+used only where an Azure capability cannot be operated reliably through the
+approved Terraform provider, and the exception must have an owner and drift
+strategy.
 
 ## Provisioning boundary
 

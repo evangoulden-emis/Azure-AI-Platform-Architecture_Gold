@@ -7,14 +7,15 @@ flowchart LR
 
   subgraph Edge["Access boundary"]
     E[Entra ID]
-    P[Azure API Management]
-    Z[Zscaler egress policy]
+    BOOMI[Boomi\nintegration entry & governance]
+    P[Azure API Management\nAI gateway]
+    Z[Zscaler ZIA\negress & tenant policy]
   end
 
   subgraph Platform["Northstar platform · private UK/EU deployment"]
     O[Orchestration runtime\nFunctions / Durable Functions / Container Apps]
-    G[Policy engine\nidentity · redaction · safety · quota]
-    M[Model gateway\nversioned provider-neutral API]
+    G[CrowdStrike AIDR + native policy\ninspection · redaction · safety]
+    M[APIM AI-serving contract\nrouting · quota · cache · metering]
     R[Retrieval service\ningestion · index · citations]
     T[Tool registry\nallow-listed enterprise capabilities]
     K[Key Vault / managed identities]
@@ -26,28 +27,29 @@ flowchart LR
     D[Metadata & audit store]
   end
 
-  subgraph Models["Approved model deployments"]
-    L[Model route TBC\nAzure OpenAI / other approved provider]
+  subgraph Models["Azure AI Foundry"]
+    L[Approved models & agents\nlogical deployment routes]
   end
 
   subgraph Ops["Trust & operations"]
     OT[OpenTelemetry]
     DY[Dynatrace]
-    CF[CrowdStrike AIDR\nintegration point]
+    CF[CrowdStrike AIDR\nsecurity telemetry]
     AU[Audit / security evidence]
   end
 
   U --> E
   A --> E
-  E --> P
-  P --> O
+  E --> BOOMI
+  BOOMI --> P
+  P --> G
+  G --> O
   P -. approved egress .-> Z
-  O --> G
-  G --> M
+  O --> M
   G --> R
   G --> T
   O --> K
-  S --> P
+  S --> BOOMI
   S --> B
   B --> R
   R --> I

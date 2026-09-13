@@ -1,7 +1,7 @@
 # Model gateway contract
 
-The gateway is an internal platform API. Product teams depend on this
-contract; provider SDKs remain behind it.
+The APIM AI gateway is an internal platform API. Product teams depend on this
+contract; Azure AI Foundry and provider SDKs remain behind it.
 
 ## Request
 
@@ -65,6 +65,8 @@ contract; provider SDKs remain behind it.
 
 - A request without an approved workload registration fails closed.
 - `model_route` is logical, not a provider deployment name.
+- APIM applies CrowdStrike AIDR inline before and after the Foundry invocation.
+- Native provider safety is retained as defence in depth.
 - Raw prompt and response bodies are excluded from standard operational logs.
 - A retrieval response must include source IDs when citations are required.
 - Tool calls are server-side registered capabilities, never arbitrary URLs.

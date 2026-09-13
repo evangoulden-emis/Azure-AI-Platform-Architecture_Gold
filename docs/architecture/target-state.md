@@ -16,6 +16,23 @@ The platform has two contracts:
 2. **The model gateway contract** — the stable API that applications call.
    Provider SDKs do not cross this boundary.
 
+## Confirmed strategic direction
+
+- **Model and agent platform:** Azure AI Foundry.
+- **Identity:** Entra ID for people and workload identities, with Conditional
+  Access and managed identity.
+- **Enterprise integration:** Boomi for integration entry, subscriptions, and
+  cross-domain orchestration.
+- **AI-serving boundary:** Azure APIM for token-aware routing, quotas, semantic
+  caching where approved, and model-specific policy.
+- **Independent AI guardrail:** CrowdStrike AIDR inline at the gateway; native
+  provider safety remains an additional layer rather than a replacement.
+- **Network security:** Zscaler ZIA for approved egress, TLS inspection, tenant
+  restrictions, and header policy.
+- **Observability:** OpenTelemetry-compatible traces into Dynatrace and
+  security/audit events into the enterprise SIEM.
+- **Delivery:** Terraform modules and code-based environment promotion.
+
 ## 2. Goals
 
 - Repeatable onboarding for new users, developers, and workloads.
@@ -33,7 +50,8 @@ The platform has two contracts:
 - Building a general-purpose autonomous agent platform.
 - Allowing unrestricted model or tool access from product code.
 - Creating a new enterprise integration bus when Boomi already owns a flow.
-- Selecting a model family before evaluation and residency approval.
+- Allowing an unapproved Foundry model family or deployment route before
+  evaluation and residency approval.
 - Moving regulated source systems into the AI platform.
 - Replacing CrowdStrike AIDR, Dynatrace, Zscaler, or Entra.
 
@@ -42,7 +60,9 @@ The platform has two contracts:
 ### 4.1 Experience and access
 
 Applications, internal tools, and approved channels authenticate with Entra ID.
-APIM is the stable ingress and contract boundary. It performs:
+Boomi is the enterprise integration and subscription-governance entry where
+the flow crosses domains or uses the existing integration fabric. APIM is the
+stable AI-serving contract boundary. It performs:
 
 - token validation and application identity resolution;
 - subscription/product mapping and quota policy;
@@ -51,7 +71,8 @@ APIM is the stable ingress and contract boundary. It performs:
 - routing to the platform runtime;
 - consistent error and version handling.
 
-No product team should call a model provider directly.
+No product team should call Azure AI Foundry or another model provider
+directly.
 
 ### 4.2 Orchestration and policy
 
@@ -63,7 +84,7 @@ retries, or longer execution. It coordinates:
 2. user and workload authorization;
 3. data classification and sensitive-data handling;
 4. retrieval, where requested;
-5. model selection through the gateway;
+5. model or agent selection through the APIM AI gateway;
 6. output policy checks;
 7. response shaping and audit emission.
 
@@ -81,8 +102,8 @@ and reviewed as part of the workload.
 
 ### 4.3 Model gateway
 
-The gateway exposes a versioned, provider-neutral contract. It resolves a
-logical model route to an approved deployment based on workload policy,
+APIM exposes the versioned model and agent contract. It resolves a logical
+route to an approved Azure AI Foundry deployment based on workload policy,
 region, capacity, quality tier, and cost budget. It owns:
 
 - approved model and deployment registry;
@@ -92,6 +113,8 @@ region, capacity, quality tier, and cost budget. It owns:
 - provider-specific request translation;
 - fallback rules that are explicit and auditable;
 - provider outage and circuit-breaker state.
+- inline CrowdStrike AIDR request/response inspection;
+- approved semantic caching and load-balancing policy.
 
 Model responses are not stored by default. If a workload requires response
 retention, it must declare the purpose, retention period, access policy, and
@@ -115,11 +138,15 @@ record.
 
 ### 4.5 Enterprise integration
 
-APIM is used for synchronous platform APIs. Boomi remains appropriate for
-system-to-system processes, file movement, and enterprise application
-orchestration already governed by the integration team. Event-driven work
-should use an approved Azure messaging service once the eventing standard is
-confirmed.
+Boomi owns enterprise integration entry, subscription governance, cross-domain
+processes, file movement, and orchestration already governed by the integration
+team. APIM owns the AI-serving plane: model and agent contracts, token-aware
+rate limiting, routing, caching, AIDR enforcement, and Foundry integration.
+
+Whether Boomi must be the front door for every AI API, including direct
+application-to-APIM calls within Azure, remains an explicit ownership decision.
+The architecture does not duplicate policy in both products: every control has
+one enforcement point and one evidence owner.
 
 The platform does not allow arbitrary outbound calls from prompts or tools.
 Each tool is a registered capability with an owner, schema, allowed data
@@ -136,10 +163,11 @@ structured events for:
 - tool invocation and result classification;
 - human escalation and final outcome.
 
-OpenTelemetry is the instrumentation boundary. Dynatrace is the operational
-consumer. CrowdStrike AIDR and Zscaler are integration points for the
-enterprise security operating model; exact telemetry, egress, and incident
-response mappings must be confirmed with those teams.
+OpenTelemetry is the instrumentation boundary and Dynatrace is the operational
+consumer. CrowdStrike AIDR is an independent inline guardrail at APIM for
+Azure-hosted traffic. Zscaler ZIA provides egress enforcement, TLS inspection,
+tenant restrictions, and approved header policy. Security and audit events are
+forwarded to the enterprise SIEM.
 
 Zscaler routing must be designed by traffic origin, not represented as one
 generic egress hop:
@@ -164,10 +192,10 @@ policy evidence rather than being embedded in the logical architecture.
 4. Input policy runs redaction and prompt-injection checks.
 5. If retrieval is requested, the runtime queries only the workload's allowed
    index and records source IDs, not raw sensitive content in telemetry.
-6. The gateway resolves the logical model route to an approved regional
-   deployment.
-7. The gateway applies provider translation, safety checks, timeout, retry, and
-   metering.
+6. APIM resolves the logical route to an approved regional Azure AI Foundry
+   model or agent deployment.
+7. APIM applies AIDR inspection, provider translation, native safety checks,
+   timeout, retry, caching policy, and metering.
 8. Output policy checks the response and either returns it, transforms it, or
    escalates it.
 9. APIM returns the versioned response and the platform emits audit and
@@ -211,11 +239,12 @@ Production promotion is an artifact promotion, not a manual reconfiguration.
 
 An onboarded team receives:
 
-1. a workload registration with owner, purpose, classification, region, model
-   route, data indexes, tools, quota, and retention;
+1. a workload registration with owner, purpose, classification, region,
+   Foundry model/agent route, data indexes, tools, quota, and retention;
 2. a repository template for the runtime and evaluation set;
-3. an IaC composition that creates only the approved workload boundary;
-4. APIM product/subscription configuration;
+3. a Terraform composition that creates only the approved workload boundary;
+4. the required Boomi subscription/integration entry and APIM AI product
+   configuration;
 5. dashboards, alerts, runbook links, and an operational owner;
 6. CI gates for dependency security, IaC policy, prompt/evaluation quality,
    secret scanning, and deployment approval.
@@ -241,16 +270,46 @@ registrations, Zscaler forwarding policy, retrieval deletion, model registry
 approval, and telemetry configuration. Evidence collectors are read-only and
 run with least privilege.
 
-## 10. Decisions required before provisioning production
+## 10. Ninety-day delivery sequence
 
-- Approved model providers and model families, including fallback policy.
+### Days 0–30 — foundation
+
+- Confirm platform ownership and the Boomi/APIM responsibility boundary.
+- Define governance intake and workload registration.
+- Build the Terraform baseline for APIM and Azure AI Foundry.
+- Define Entra identities, private networking, secrets, and evidence contracts.
+
+### Days 31–60 — non-production guardrails and pilots
+
+- Deploy APIM with inline CrowdStrike AIDR in non-production.
+- Connect approved Foundry model deployments.
+- Deliver pilot use cases with retrieval, evaluation, and Dynatrace telemetry.
+- Use an AWS API Gateway/Lambda AIDR adapter only as a temporary governed
+  exception for existing AWS workloads.
+
+### Days 61–90 — production and catalogue governance
+
+- Promote approved pilots to production.
+- Complete operational dashboards, SIEM forwarding, alerts, and runbooks.
+- Publish model, agent, API, MCP/tool, and workload registrations in the
+  service catalogue.
+- Open the first supported onboarding path to delivery teams.
+
+## 11. Decisions required before provisioning production
+
+- Approved Azure AI Foundry model families, deployment routes, and any external
+  provider exception or fallback policy.
 - Exact UK/EU primary and disaster-recovery regions.
-- Terraform versus Bicep as the module authoring standard.
 - Azure messaging/eventing standard for asynchronous work.
 - Data classification taxonomy and the list of classes allowed for prompts,
   retrieval, embeddings, and telemetry.
 - Whether Azure AI Search is the default retrieval service.
-- CrowdStrike AIDR and Zscaler integration patterns and evidence requirements.
+- Whether Boomi is mandatory for every AI API or only enterprise integration
+  and cross-domain flows.
+- Per-use-case AIDR and sensitive-data action: block, redact, transform, or
+  allow with audit.
+- Long-term AWS equivalent for APIM inline AIDR enforcement; the Lambda SDK
+  adapter is temporary.
 - ZIA/ZPA policy ownership, platform traffic origin, SIPA use, and the required
   Client Forwarding Policies for each environment.
 - Dynatrace tenant, trace retention, dashboard ownership, and alert routing.
