@@ -2,7 +2,6 @@ terraform {
   required_version = ">= 1.8.0"
   required_providers {
     azurerm = { source = "hashicorp/azurerm", version = "= 4.81.0" }
-    azuread = { source = "hashicorp/azuread", version = "= 3.9.0" }
   }
 }
 
@@ -10,7 +9,6 @@ provider "azurerm" {
   subscription_id = var.subscription_id
   features {}
 }
-provider "azuread" { tenant_id = var.tenant_id }
 data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "current" {
   subscription_id = var.subscription_id
@@ -69,13 +67,6 @@ module "network" {
   address_space       = var.address_space
   tags                = local.tags
 }
-module "identity" {
-  source              = "../../modules/identity"
-  name                = local.name
-  location            = var.location
-  resource_group_name = azurerm_resource_group.platform.name
-  tags                = local.tags
-}
 module "vault" {
   source                     = "../../modules/key-vault"
   name                       = local.name
@@ -101,7 +92,7 @@ module "foundry" {
   name                                  = local.name
   location                              = var.location
   resource_group_name                   = azurerm_resource_group.platform.name
-  identity_id                           = module.identity.managed_identity_id
+  identity_id                           = var.platform_identity_resource_id
   key_vault_id                          = module.vault.id
   storage_account_id                    = module.retrieval.storage_account_id
   private_endpoint_subnet_id            = module.network.private_endpoint_subnet_id
@@ -119,7 +110,7 @@ module "apim" {
   publisher_email     = var.publisher_email
   subnet_id           = module.network.apim_subnet_id
   vnet_id             = module.network.vnet_id
-  identity_id         = module.identity.managed_identity_id
+  identity_id         = var.platform_identity_resource_id
   tags                = local.tags
 }
 module "gateway" {
@@ -132,51 +123,49 @@ module "gateway" {
 resource "azurerm_role_assignment" "gateway_model_inference" {
   scope                = module.foundry.ai_services_id
   role_definition_name = "Cognitive Services OpenAI User"
-  principal_id         = module.identity.managed_identity_principal_id
+  principal_id         = var.platform_identity_principal_id
 }
 
 resource "azurerm_role_assignment" "platform_secrets" {
   scope                = module.vault.id
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = module.identity.managed_identity_principal_id
+  principal_id         = var.platform_identity_principal_id
 }
 
 resource "azurerm_role_assignment" "platform_blob_data" {
   scope                = module.retrieval.storage_account_id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = module.identity.managed_identity_principal_id
+  principal_id         = var.platform_identity_principal_id
 }
 
 resource "azurerm_role_assignment" "platform_search_data" {
   scope                = module.retrieval.search_service_id
   role_definition_name = "Search Index Data Contributor"
-  principal_id         = module.identity.managed_identity_principal_id
+  principal_id         = var.platform_identity_principal_id
 }
 
 resource "azurerm_role_assignment" "platform_search_service" {
   scope                = module.retrieval.search_service_id
   role_definition_name = "Search Service Contributor"
-  principal_id         = module.identity.managed_identity_principal_id
+  principal_id         = var.platform_identity_principal_id
 }
 
 module "workloads" {
-  for_each                     = var.workloads
-  source                       = "../../modules/workload"
-  workload_id                  = each.key
-  owner                        = each.value.owner
-  classification               = each.value.classification
-  model_routes                 = each.value.model_routes
-  retrieval_indexes            = each.value.retrieval_indexes
-  quota_per_minute             = each.value.quota_per_minute
-  api_management_name          = module.apim.name
-  resource_group_name          = azurerm_resource_group.platform.name
-  api_name                     = module.gateway.api_name
-  gateway_client_id            = module.identity.gateway_client_id
-  gateway_scope                = module.identity.gateway_scope
-  tenant_id                    = var.tenant_id
-  federated_identity           = each.value.federated_identity
-  gateway_service_principal_id = module.identity.gateway_service_principal_id
-  gateway_app_role_id          = module.identity.gateway_app_role_id
+  for_each            = var.workloads
+  source              = "../../modules/workload"
+  workload_id         = each.key
+  owner               = each.value.owner
+  classification      = each.value.classification
+  model_routes        = each.value.model_routes
+  retrieval_indexes   = each.value.retrieval_indexes
+  quota_per_minute    = each.value.quota_per_minute
+  api_management_name = module.apim.name
+  resource_group_name = azurerm_resource_group.platform.name
+  api_name            = module.gateway.api_name
+  workload_client_id  = each.value.client_id
+  gateway_client_id   = var.gateway_client_id
+  gateway_scope       = var.gateway_scope
+  tenant_id           = var.tenant_id
 }
 
 module "gateway_policy" {
@@ -184,9 +173,9 @@ module "gateway_policy" {
   api_management_name        = module.apim.name
   resource_group_name        = azurerm_resource_group.platform.name
   api_name                   = module.gateway.api_name
-  gateway_client_id          = module.identity.gateway_client_id
+  gateway_client_id          = var.gateway_client_id
   tenant_id                  = var.tenant_id
-  backend_identity_client_id = module.identity.managed_identity_client_id
+  backend_identity_client_id = var.platform_identity_client_id
   aidr_inspection_url        = var.aidr_inspection_url
   model_route_deployments    = var.model_route_deployments
   workloads = {

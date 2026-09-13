@@ -31,7 +31,7 @@ An operational cockpit for designing and governing a repeatable Azure AI platfor
 ## Architecture decisions
 
 - Azure AI Foundry is the strategic platform for approved models and agents; individual model families and fallback routes remain governed decisions.
-- Entra is the identity authority; Boomi owns enterprise integration entry/governance; APIM owns the token-aware AI-serving and policy boundary.
+- Entra is the existing identity authority and is not provisioned by this repository. Terraform consumes existing Entra tenant, application, and managed-identity IDs via variables or GitHub configuration; Boomi owns enterprise integration entry/governance; APIM owns the token-aware AI-serving and policy boundary.
 - CrowdStrike AIDR is an independent inline guardrail, Zscaler governs egress, Dynatrace receives operational telemetry, and Terraform is the IaC standard.
 - Architecture decision statuses persist in PostgreSQL so the decision log remains an agreement surface across reloads.
 - The API contract is OpenAPI-first; generated React Query hooks are the only frontend API surface.

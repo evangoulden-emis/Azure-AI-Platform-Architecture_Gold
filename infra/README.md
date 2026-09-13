@@ -54,7 +54,8 @@ Client Forwarding Policy behaviour.
 ## Authoring standard
 
 Terraform is the primary module authoring standard. The first 30-day baseline
-must establish APIM and Azure AI Foundry modules, then add Entra, private
+must establish APIM and Azure AI Foundry modules integrated with the existing
+Entra tenant, then add private
 networking, AIDR policy, observability, and workload compositions. Bicep may be
 used only where an Azure capability cannot be operated reliably through the
 approved Terraform provider, and the exception must have an owner and drift
@@ -75,14 +76,16 @@ Prerequisites:
 - Azure CLI authentication to a dedicated non-production subscription;
 - an Azure subscription tag `environment=dev`, `development`, or
   `non-production`;
-- permission to create Entra applications and resource groups;
+- existing Entra application registrations and a user-assigned managed identity;
+- permission to create Azure resource groups and assign Azure RBAC roles to the
+  supplied existing managed identity;
 - a reachable CrowdStrike AIDR inspection endpoint.
 
 ```bash
 cd infra/environments/dev
 cp terraform.tfvars.example terraform.tfvars
 # Set subscription_id, the independently controlled non-production allow-list,
-# tenant_id, aidr_inspection_url and workload registrations.
+# tenant_id, existing Entra IDs, aidr_inspection_url and workload registrations.
 terraform init
 terraform validate
 terraform plan -out dev.tfplan
@@ -101,7 +104,10 @@ CI policy does not silently fall back when a plan or allow-list is missing.
 
 ## Module contracts
 
-- `identity`: Entra application/service principal and workload managed identity.
+- Entra is an external dependency: this repository does not create applications,
+  service principals, federated credentials, app-role assignments, or managed
+  identities. Existing IDs are passed through Terraform variables or GitHub
+  environment variables; credentials, if ever required, belong in GitHub secrets.
 - `private-network`: VNet, delegated subnets, and private DNS zones.
 - `api-management`: private APIM gateway and workload-facing endpoint.
 - `model-gateway`: versioned API plus fail-closed inline AIDR inspection policy.
@@ -109,12 +115,12 @@ CI policy does not silently fall back when a plan or allow-list is missing.
 - `key-vault`: RBAC-only private secrets boundary.
 - `retrieval`: private ADLS Gen2 and Azure AI Search services.
 - `observability`: Log Analytics, Application Insights, and diagnostic settings.
-- `workload`: repeatable APIM product boundary, Entra application, application
-  role assignment, and secretless OIDC federation per workload.
+- `workload`: repeatable APIM product boundary linked to an existing Entra
+  workload registration.
 - `gateway-policy`: identity-derived workload, quota, route, retrieval, AIDR,
   and backend translation policy for the approved `/v1/responses` contract.
 
-The development outputs return the APIM endpoint, identity IDs, resource IDs,
+The development outputs return the APIM endpoint, supplied identity IDs, resource IDs,
 private DNS zones, and a workload-onboarding map suitable for downstream
 automation. APIM resolves workload policy from the validated Entra `azp` claim;
 subscription keys are neither required nor created.

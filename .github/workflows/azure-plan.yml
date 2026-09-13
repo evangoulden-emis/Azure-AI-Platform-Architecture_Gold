@@ -17,7 +17,22 @@ jobs:
           SUBSCRIPTION_ID: ${{ vars.AZURE_NONPROD_SUBSCRIPTION_ID }}
           TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           CLIENT_ID: ${{ vars.AZURE_TERRAFORM_CLIENT_ID }}
-        run: test -n "$SUBSCRIPTION_ID" && test -n "$TENANT_ID" && test -n "$CLIENT_ID"
+          GATEWAY_CLIENT_ID: ${{ vars.AZURE_GATEWAY_CLIENT_ID }}
+          GATEWAY_SCOPE: ${{ vars.AZURE_GATEWAY_SCOPE }}
+          PLATFORM_IDENTITY_RESOURCE_ID: ${{ vars.AZURE_PLATFORM_IDENTITY_RESOURCE_ID }}
+          PLATFORM_IDENTITY_CLIENT_ID: ${{ vars.AZURE_PLATFORM_IDENTITY_CLIENT_ID }}
+          PLATFORM_IDENTITY_PRINCIPAL_ID: ${{ vars.AZURE_PLATFORM_IDENTITY_PRINCIPAL_ID }}
+          PILOT_CLIENT_ID: ${{ vars.AZURE_CI_PILOT_CLIENT_ID }}
+        run: |
+          test -n "$SUBSCRIPTION_ID"
+          test -n "$TENANT_ID"
+          test -n "$CLIENT_ID"
+          test -n "$GATEWAY_CLIENT_ID"
+          test -n "$GATEWAY_SCOPE"
+          test -n "$PLATFORM_IDENTITY_RESOURCE_ID"
+          test -n "$PLATFORM_IDENTITY_CLIENT_ID"
+          test -n "$PLATFORM_IDENTITY_PRINCIPAL_ID"
+          test -n "$PILOT_CLIENT_ID"
       - uses: azure/login@v2
         with:
           client-id: ${{ vars.AZURE_TERRAFORM_CLIENT_ID }}
@@ -35,11 +50,16 @@ jobs:
           TF_VAR_subscription_id: ${{ vars.AZURE_NONPROD_SUBSCRIPTION_ID }}
           TF_VAR_approved_nonprod_subscription_ids: '["${{ vars.AZURE_NONPROD_SUBSCRIPTION_ID }}"]'
           TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+          TF_VAR_gateway_client_id: ${{ vars.AZURE_GATEWAY_CLIENT_ID }}
+          TF_VAR_gateway_scope: ${{ vars.AZURE_GATEWAY_SCOPE }}
+          TF_VAR_platform_identity_resource_id: ${{ vars.AZURE_PLATFORM_IDENTITY_RESOURCE_ID }}
+          TF_VAR_platform_identity_client_id: ${{ vars.AZURE_PLATFORM_IDENTITY_CLIENT_ID }}
+          TF_VAR_platform_identity_principal_id: ${{ vars.AZURE_PLATFORM_IDENTITY_PRINCIPAL_ID }}
           TF_VAR_publisher_name: ${{ vars.APIM_PUBLISHER_NAME }}
           TF_VAR_publisher_email: ${{ vars.APIM_PUBLISHER_EMAIL }}
           TF_VAR_aidr_inspection_url: ${{ vars.AIDR_NONPROD_INSPECTION_URL }}
           TF_VAR_model_route_deployments: '{"approved-chat-standard":"${{ vars.AZURE_FOUNDRY_CHAT_DEPLOYMENT }}"}'
-          TF_VAR_workloads: '{"ci-pilot":{"owner":"platform-ci","classification":"internal","model_routes":["approved-chat-standard"],"retrieval_indexes":["ci-pilot-documents"],"quota_per_minute":10,"federated_identity":{"issuer":"https://token.actions.githubusercontent.com","subject":"repo:${{ github.repository }}:environment:development","audiences":["api://AzureADTokenExchange"]}}}'
+          TF_VAR_workloads: '{"ci-pilot":{"client_id":"${{ vars.AZURE_CI_PILOT_CLIENT_ID }}","owner":"platform-ci","classification":"internal","model_routes":["approved-chat-standard"],"retrieval_indexes":["ci-pilot-documents"],"quota_per_minute":10}}'
         run: |
           terraform plan -out=dev.tfplan
           terraform show -json dev.tfplan > dev.tfplan.json

@@ -2,10 +2,6 @@
   "approved_environments": ["dev", "test"],
   "approved_locations": ["uksouth", "ukwest", "westeurope", "northeurope", "global"],
   "approved_resource_types": [
-    "azuread_application",
-    "azuread_app_role_assignment",
-    "azuread_application_federated_identity_credential",
-    "azuread_service_principal",
     "azurerm_ai_foundry",
     "azurerm_ai_foundry_project",
     "azurerm_api_management",
@@ -28,7 +24,6 @@
     "azurerm_search_service",
     "azurerm_storage_account",
     "azurerm_subnet",
-    "azurerm_user_assigned_identity",
     "azurerm_virtual_network"
   ],
   "private_resource_types": [

@@ -7,43 +7,10 @@ variable "quota_per_minute" { type = number }
 variable "api_management_name" { type = string }
 variable "resource_group_name" { type = string }
 variable "api_name" { type = string }
-variable "gateway_service_principal_id" { type = string }
-variable "gateway_app_role_id" { type = string }
+variable "workload_client_id" { type = string }
 variable "gateway_client_id" { type = string }
 variable "gateway_scope" { type = string }
 variable "tenant_id" { type = string }
-variable "federated_identity" {
-  type = object({
-    issuer    = string
-    subject   = string
-    audiences = set(string)
-  })
-}
-
-resource "azuread_application" "this" {
-  display_name     = "northstar-workload-${var.workload_id}"
-  sign_in_audience = "AzureADMyOrg"
-}
-
-resource "azuread_service_principal" "this" {
-  client_id                    = azuread_application.this.client_id
-  app_role_assignment_required = false
-}
-
-resource "azuread_application_federated_identity_credential" "this" {
-  application_id = azuread_application.this.id
-  display_name   = "northstar-${var.workload_id}-oidc"
-  description    = "Secretless OIDC authentication for ${var.workload_id}"
-  audiences      = var.federated_identity.audiences
-  issuer         = var.federated_identity.issuer
-  subject        = var.federated_identity.subject
-}
-
-resource "azuread_app_role_assignment" "gateway" {
-  app_role_id         = var.gateway_app_role_id
-  principal_object_id = azuread_service_principal.this.object_id
-  resource_object_id  = var.gateway_service_principal_id
-}
 
 resource "azurerm_api_management_product" "this" {
   product_id            = "workload-${var.workload_id}"
@@ -66,14 +33,12 @@ resource "azurerm_api_management_product_api" "this" {
 output "onboarding" {
   value = {
     product_id         = azurerm_api_management_product.this.product_id
-    workload_client_id = azuread_application.this.client_id
+    workload_client_id = var.workload_client_id
     authentication = {
-      method         = "oidc-federation"
+      method         = "existing-entra-registration"
       tenant_id      = var.tenant_id
       token_scope    = var.gateway_scope
       token_audience = var.gateway_client_id
-      issuer         = var.federated_identity.issuer
-      subject        = var.federated_identity.subject
     }
     owner             = var.owner
     classification    = var.classification
@@ -85,7 +50,7 @@ output "onboarding" {
 
 output "policy_registration" {
   value = {
-    client_id         = azuread_application.this.client_id
+    client_id         = var.workload_client_id
     classification    = var.classification
     model_routes      = var.model_routes
     retrieval_indexes = var.retrieval_indexes

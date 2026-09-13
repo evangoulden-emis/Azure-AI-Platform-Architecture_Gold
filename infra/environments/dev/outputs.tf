@@ -4,9 +4,9 @@ output "platform" {
     location                            = var.location
     resource_group_id                   = azurerm_resource_group.platform.id
     gateway_url                         = module.apim.gateway_url
-    gateway_client_id                   = module.identity.gateway_client_id
-    platform_managed_identity_id        = module.identity.managed_identity_id
-    platform_managed_identity_client_id = module.identity.managed_identity_client_id
+    gateway_client_id                   = var.gateway_client_id
+    platform_managed_identity_id        = var.platform_identity_resource_id
+    platform_managed_identity_client_id = var.platform_identity_client_id
     key_vault_id                        = module.vault.id
     foundry_account_id                  = module.foundry.id
     foundry_project_id                  = module.foundry.project_id

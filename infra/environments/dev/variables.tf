@@ -12,6 +12,42 @@ variable "tenant_id" {
     error_message = "tenant_id must be an explicit Entra tenant UUID."
   }
 }
+variable "gateway_client_id" {
+  type        = string
+  description = "Client ID of the existing Entra application that represents the APIM AI gateway."
+  validation {
+    condition     = can(regex("^[0-9a-fA-F-]{36}$", var.gateway_client_id))
+    error_message = "gateway_client_id must be an existing Entra application client UUID."
+  }
+}
+variable "gateway_scope" {
+  type        = string
+  description = "Existing Entra scope used by workloads when requesting a gateway token."
+  validation {
+    condition     = length(var.gateway_scope) > 0
+    error_message = "gateway_scope must identify an existing Entra gateway scope."
+  }
+}
+variable "platform_identity_resource_id" {
+  type        = string
+  description = "Azure resource ID of the existing user-assigned managed identity."
+}
+variable "platform_identity_client_id" {
+  type        = string
+  description = "Client ID of the existing user-assigned managed identity."
+  validation {
+    condition     = can(regex("^[0-9a-fA-F-]{36}$", var.platform_identity_client_id))
+    error_message = "platform_identity_client_id must be an existing Entra client UUID."
+  }
+}
+variable "platform_identity_principal_id" {
+  type        = string
+  description = "Principal/object ID of the existing user-assigned managed identity."
+  validation {
+    condition     = can(regex("^[0-9a-fA-F-]{36}$", var.platform_identity_principal_id))
+    error_message = "platform_identity_principal_id must be an existing Entra principal UUID."
+  }
+}
 variable "approved_nonprod_subscription_ids" {
   type = set(string)
   validation {
@@ -68,29 +104,23 @@ variable "model_route_deployments" {
 }
 variable "workloads" {
   type = map(object({
+    client_id         = string
     owner             = string
     classification    = string
     model_routes      = list(string)
     retrieval_indexes = list(string)
     quota_per_minute  = number
-    federated_identity = object({
-      issuer    = string
-      subject   = string
-      audiences = set(string)
-    })
   }))
   default = {}
   validation {
     condition = alltrue([
       for w in values(var.workloads) :
+      can(regex("^[0-9a-fA-F-]{36}$", w.client_id)) &&
       contains(["public", "internal", "confidential"], w.classification) &&
       length(w.model_routes) > 0 &&
-      w.quota_per_minute > 0 &&
-      startswith(w.federated_identity.issuer, "https://") &&
-      length(w.federated_identity.subject) > 0 &&
-      length(w.federated_identity.audiences) > 0
+      w.quota_per_minute > 0
     ])
-    error_message = "Each workload needs an approved classification, model route, positive quota, and complete HTTPS OIDC federation contract."
+    error_message = "Each workload needs an existing Entra client UUID, approved classification, model route, and positive quota."
   }
 }
 variable "tags" {

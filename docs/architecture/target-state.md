@@ -277,7 +277,9 @@ run with least privilege.
 - Confirm platform ownership and the Boomi/APIM responsibility boundary.
 - Define governance intake and workload registration.
 - Build the Terraform baseline for APIM and Azure AI Foundry.
-- Define Entra identities, private networking, secrets, and evidence contracts.
+- Confirm the existing Entra tenant, applications, managed identities, roles,
+  and externally supplied identifiers; define private networking, secrets, and
+  evidence contracts without provisioning Entra objects.
 
 ### Days 31–60 — non-production guardrails and pilots
 

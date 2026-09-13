@@ -1,6 +1,11 @@
 subscription_id    = "00000000-0000-0000-0000-000000000000"
 approved_nonprod_subscription_ids = ["00000000-0000-0000-0000-000000000000"]
 tenant_id          = "00000000-0000-0000-0000-000000000000"
+gateway_client_id  = "00000000-0000-0000-0000-000000000000"
+gateway_scope      = "api://00000000-0000-0000-0000-000000000000/.default"
+platform_identity_resource_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/existing-identity-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/existing-platform-identity"
+platform_identity_client_id    = "00000000-0000-0000-0000-000000000000"
+platform_identity_principal_id = "00000000-0000-0000-0000-000000000000"
 publisher_name     = "Northstar AI Platform"
 publisher_email    = "platform-team@example.invalid"
 aidr_inspection_url = "https://aidr.nonprod.example.invalid/inspect"
@@ -10,15 +15,11 @@ model_route_deployments = {
 
 workloads = {
   pilot-search = {
+    client_id          = "00000000-0000-0000-0000-000000000000"
     owner             = "pilot-team"
     classification    = "internal"
     model_routes      = ["approved-chat-standard"]
     retrieval_indexes = ["pilot-documents"]
     quota_per_minute  = 30
-    federated_identity = {
-      issuer    = "https://token.actions.githubusercontent.com"
-      subject   = "repo:example/northstar-workload:environment:development"
-      audiences = ["api://AzureADTokenExchange"]
-    }
   }
 }

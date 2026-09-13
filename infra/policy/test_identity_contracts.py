@@ -14,12 +14,14 @@ assert 'authentication-managed-identity' in gateway_policy
 assert 'client-id="${var.backend_identity_client_id}"' in gateway_policy
 assert "<audience>${var.gateway_client_id}</audience>" in gateway_policy
 assert "api://${var.gateway_client_id}" not in gateway_policy
-assert "backend_identity_client_id = module.identity.managed_identity_client_id" in environment
+assert "backend_identity_client_id = var.platform_identity_client_id" in environment
+assert 'provider "azuread"' not in environment
+assert 'module "identity"' not in environment
 
-assert 'resource "azuread_application_federated_identity_credential"' in workload
-assert 'method         = "oidc-federation"' in workload
-assert "federated_identity" in environment
-assert "each.value.federated_identity" in environment
+assert 'resource "azuread_' not in workload
+assert 'method         = "existing-entra-registration"' in workload
+assert "workload_client_id" in environment
+assert "each.value.client_id" in environment
 assert "azurerm_api_management_subscription" not in workload
 assert "token_scope" in workload
 
