@@ -31,6 +31,17 @@ node_modules
 /.sass-cache
 /connect.lock
 /coverage
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+__pycache__/
+*.py[cod]
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 /libpeerconnection.log
 npm-debug.log
 yarn-error.log
