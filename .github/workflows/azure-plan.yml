@@ -1,0 +1,46 @@
+name: Authenticated Azure development plan
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  plan:
+    environment: development
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require controlled non-production settings
+        env:
+          SUBSCRIPTION_ID: ${{ vars.AZURE_NONPROD_SUBSCRIPTION_ID }}
+          TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          CLIENT_ID: ${{ vars.AZURE_TERRAFORM_CLIENT_ID }}
+        run: test -n "$SUBSCRIPTION_ID" && test -n "$TENANT_ID" && test -n "$CLIENT_ID"
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_TERRAFORM_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_NONPROD_SUBSCRIPTION_ID }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.5"
+      - name: Initialize
+        working-directory: infra/environments/dev
+        run: terraform init -backend=false
+      - name: Plan controlled development foundation
+        working-directory: infra/environments/dev
+        env:
+          TF_VAR_subscription_id: ${{ vars.AZURE_NONPROD_SUBSCRIPTION_ID }}
+          TF_VAR_approved_nonprod_subscription_ids: '["${{ vars.AZURE_NONPROD_SUBSCRIPTION_ID }}"]'
+          TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+          TF_VAR_publisher_name: ${{ vars.APIM_PUBLISHER_NAME }}
+          TF_VAR_publisher_email: ${{ vars.APIM_PUBLISHER_EMAIL }}
+          TF_VAR_aidr_inspection_url: ${{ vars.AIDR_NONPROD_INSPECTION_URL }}
+          TF_VAR_model_route_deployments: '{"approved-chat-standard":"${{ vars.AZURE_FOUNDRY_CHAT_DEPLOYMENT }}"}'
+          TF_VAR_workloads: '{"ci-pilot":{"owner":"platform-ci","classification":"internal","model_routes":["approved-chat-standard"],"retrieval_indexes":["ci-pilot-documents"],"quota_per_minute":10,"federated_identity":{"issuer":"https://token.actions.githubusercontent.com","subject":"repo:${{ github.repository }}:environment:development","audiences":["api://AzureADTokenExchange"]}}}'
+        run: |
+          terraform plan -out=dev.tfplan
+          terraform show -json dev.tfplan > dev.tfplan.json
+          python ../../policy/check_plan.py dev.tfplan.json ../../policy/allowlist.json

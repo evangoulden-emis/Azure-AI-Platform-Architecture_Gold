@@ -1,0 +1,36 @@
+name: Terraform foundation
+on:
+  pull_request:
+    paths: ["infra/**", ".github/workflows/terraform.yml"]
+  push:
+    branches: [main]
+    paths: ["infra/**", ".github/workflows/terraform.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.5"
+      - name: Format
+        run: terraform fmt -check -recursive infra
+      - name: Initialize modules without a backend
+        working-directory: infra/environments/dev
+        run: terraform init -backend=false
+      - name: Validate development composition
+        working-directory: infra/environments/dev
+        run: terraform validate
+      - name: Exercise fail-closed policy fixtures
+        run: |
+          python3 infra/policy/check_configuration.py
+          python3 infra/policy/test_check_plan.py
+          python3 infra/policy/test_identity_contracts.py
+      - name: Reject production composition
+        run: |
+          test ! -d infra/environments/prod
+          ! grep -R --include='*.tf' -E 'environment[[:space:]]*=[[:space:]]*"(prod|production)"' infra/environments

@@ -62,7 +62,59 @@ strategy.
 
 ## Provisioning boundary
 
-This repository contains the design and module plan only. It must not be
-connected to a production Azure subscription until the decisions in
-`docs/architecture/target-state.md` are approved and the platform security
-review is complete.
+The development composition in `environments/dev` is deployable. There is
+deliberately no production composition. The root module rejects production-like
+environment names and requires the caller to provide the expected non-production
+subscription ID; a precondition compares it with the authenticated subscription.
+
+## Development deployment
+
+Prerequisites:
+
+- Terraform 1.8 or newer;
+- Azure CLI authentication to a dedicated non-production subscription;
+- an Azure subscription tag `environment=dev`, `development`, or
+  `non-production`;
+- permission to create Entra applications and resource groups;
+- a reachable CrowdStrike AIDR inspection endpoint.
+
+```bash
+cd infra/environments/dev
+cp terraform.tfvars.example terraform.tfvars
+# Set subscription_id, the independently controlled non-production allow-list,
+# tenant_id, aidr_inspection_url and workload registrations.
+terraform init
+terraform validate
+terraform plan -out dev.tfplan
+terraform show -json dev.tfplan > dev.tfplan.json
+python ../../policy/check_plan.py dev.tfplan.json ../../policy/allowlist.json
+terraform apply dev.tfplan
+```
+
+The policy checker denies unknown Azure resource
+types, unapproved locations, public access on protected data/AI services, and any
+production-like environment tag.
+
+CI validates all modules and runs positive and negative policy fixtures. Azure
+planning is intentionally a separate authenticated deployment-stage concern:
+CI policy does not silently fall back when a plan or allow-list is missing.
+
+## Module contracts
+
+- `identity`: Entra application/service principal and workload managed identity.
+- `private-network`: VNet, delegated subnets, and private DNS zones.
+- `api-management`: private APIM gateway and workload-facing endpoint.
+- `model-gateway`: versioned API plus fail-closed inline AIDR inspection policy.
+- `ai-runtime`: private Azure AI Foundry account and project boundary.
+- `key-vault`: RBAC-only private secrets boundary.
+- `retrieval`: private ADLS Gen2 and Azure AI Search services.
+- `observability`: Log Analytics, Application Insights, and diagnostic settings.
+- `workload`: repeatable APIM product boundary, Entra application, application
+  role assignment, and secretless OIDC federation per workload.
+- `gateway-policy`: identity-derived workload, quota, route, retrieval, AIDR,
+  and backend translation policy for the approved `/v1/responses` contract.
+
+The development outputs return the APIM endpoint, identity IDs, resource IDs,
+private DNS zones, and a workload-onboarding map suitable for downstream
+automation. APIM resolves workload policy from the validated Entra `azp` claim;
+subscription keys are neither required nor created.
