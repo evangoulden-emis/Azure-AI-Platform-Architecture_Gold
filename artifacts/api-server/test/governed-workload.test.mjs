@@ -25,6 +25,10 @@ function token(applicationId, roles, expiresInSeconds = 300) {
 
 const appToken = token("claims-assistant-pilot-app", ["AI.Invoke"]);
 const adminToken = token("claims-assistant-pilot-admin", ["AI.Invoke", "Pilot.Source.Delete"]);
+const governanceToken = token(
+  "claims-assistant-pilot-admin",
+  ["AI.Invoke", "Architecture.Decision.Update"],
+);
 const body = {
   workload_id: "claims-assistant",
   model_route: "balanced",
@@ -134,4 +138,32 @@ test("protects deletion and proves deleted sources cannot be retrieved", async (
   const response = await governed({}, token("claims-assistant-pilot-app", ["AI.Invoke"]));
   const result = await response.json();
   assert.ok(result.citations.every((citation) => citation.source_id !== "claim-note-42"));
+});
+
+test("protects architecture decision updates with a dedicated permission", async () => {
+  const path = "/platform/decisions/model-gateway";
+  const update = {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ status: "Accepted" }),
+  };
+
+  assert.equal((await request(path, update)).status, 401);
+  assert.equal((await request(path, {
+    ...update,
+    headers: { ...update.headers, authorization: `Bearer ${appToken}` },
+  })).status, 403);
+
+  const authorized = await request(path, {
+    ...update,
+    headers: { ...update.headers, authorization: `Bearer ${governanceToken}` },
+  });
+  assert.equal(authorized.status, 200);
+  assert.equal((await authorized.json()).status, "Accepted");
+
+  const missing = await request("/platform/decisions/not-a-decision", {
+    ...update,
+    headers: { ...update.headers, authorization: `Bearer ${governanceToken}` },
+  });
+  assert.equal(missing.status, 404);
 });

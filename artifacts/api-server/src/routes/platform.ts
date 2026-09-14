@@ -11,6 +11,7 @@ import {
 import { eq } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { architectureDecisionsTable } from "@workspace/db";
+import { authenticatePilotToken } from "../lib/pilot-auth";
 
 const router: IRouter = Router();
 
@@ -264,6 +265,16 @@ router.get("/platform/decisions", async (_req, res) => {
 });
 
 router.patch("/platform/decisions/:decisionId", async (req, res) => {
+  const identity = authenticatePilotToken(req.header("authorization"));
+  if (!identity) {
+    res.status(401).json({ error: "A valid bearer identity is required" });
+    return;
+  }
+  if (!identity.canUpdateArchitectureDecisions) {
+    res.status(403).json({ error: "Architecture decision update permission is required" });
+    return;
+  }
+
   const params = UpdateArchitectureDecisionParams.parse(req.params);
   const body = UpdateArchitectureDecisionBody.parse(req.body);
   const [updated] = await db

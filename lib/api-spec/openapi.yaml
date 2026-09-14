@@ -102,6 +102,11 @@ paths:
       tags: [platform]
       summary: Update an architecture decision status
       parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Bearer identity with the Architecture.Decision.Update role
+          schema: { type: string }
         - name: decisionId
           in: path
           required: true
@@ -120,6 +125,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ArchitectureDecision"
+        "401":
+          description: Missing or invalid bearer identity
+        "403":
+          description: Identity lacks architecture decision update permission
         "404":
           description: Decision not found
   /v1/responses:

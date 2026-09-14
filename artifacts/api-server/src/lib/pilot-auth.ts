@@ -15,16 +15,19 @@ export type PilotIdentity = {
   applicationId: string;
   workloadId: string;
   canDeleteSources: boolean;
+  canUpdateArchitectureDecisions: boolean;
 };
 
 const applicationRegistry: Record<string, Omit<PilotIdentity, "applicationId">> = {
   "claims-assistant-pilot-app": {
     workloadId: "claims-assistant",
     canDeleteSources: false,
+    canUpdateArchitectureDecisions: false,
   },
   "claims-assistant-pilot-admin": {
     workloadId: "claims-assistant",
     canDeleteSources: true,
+    canUpdateArchitectureDecisions: true,
   },
 };
 
@@ -72,6 +75,9 @@ export function authenticatePilotToken(authorization: string | undefined): Pilot
       workloadId: registration.workloadId,
       canDeleteSources:
         registration.canDeleteSources && claims.roles.includes("Pilot.Source.Delete"),
+      canUpdateArchitectureDecisions:
+        registration.canUpdateArchitectureDecisions &&
+        claims.roles.includes("Architecture.Decision.Update"),
     };
   } catch {
     return null;
