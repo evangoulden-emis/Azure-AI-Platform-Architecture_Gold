@@ -11,8 +11,8 @@ let server;
 function token(applicationId, roles, expiresInSeconds = 300) {
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
   const payload = Buffer.from(JSON.stringify({
-    iss: "https://login.microsoftonline.com/northstar-pilot/v2.0",
-    aud: "api://northstar-ai-gateway",
+    iss: "https://login.microsoftonline.com/enlivio-pilot/v2.0",
+    aud: "api://enlivio-ai-gateway",
     azp: applicationId,
     exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
     roles,

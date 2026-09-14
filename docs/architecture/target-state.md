@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-Northstar is a governed internal AI platform for product teams building
+enlivio is a governed internal AI platform for product teams building
 search, summarisation, extraction, copilots, and workflow automation. It gives
 teams a repeatable path from an Entra-authenticated application request to a
 measured model response without making each team independently solve identity,

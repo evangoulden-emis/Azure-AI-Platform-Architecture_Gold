@@ -1,4 +1,4 @@
-# Northstar AI Platform Architecture Pack
+# enlivio AI Platform Architecture Pack
 
 This pack is the source of truth for the proposed enterprise AI platform. The
 web cockpit in `artifacts/ai-platform-blueprint` is a review surface for this

@@ -15,9 +15,9 @@ data "azurerm_subscription" "current" {
 }
 
 locals {
-  name = "northstar-${var.environment}"
+  name = "enlivio-${var.environment}"
   tags = merge(var.tags, {
-    application         = "northstar-ai-platform"
+    application         = "enlivio-ai-platform"
     environment         = var.environment
     managed-by          = "terraform"
     data-classification = "non-production"

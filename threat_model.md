@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Northstar is a React and Express platform-governance cockpit backed by PostgreSQL through Drizzle. It presents Azure AI platform readiness, controls, roadmap items, and persisted architecture decisions. It also contains a non-production governed claims-workload simulation. The project is not currently deployed, but the API and web artifacts are designated deployment entry points.
+enlivio is a React and Express platform-governance cockpit backed by PostgreSQL through Drizzle. It presents Azure AI platform readiness, controls, roadmap items, and persisted architecture decisions. It also contains a non-production governed claims-workload simulation. The project is not currently deployed, but the API and web artifacts are designated deployment entry points.
 
 ## Assets
 

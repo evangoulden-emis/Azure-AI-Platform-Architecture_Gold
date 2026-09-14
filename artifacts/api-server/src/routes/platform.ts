@@ -222,7 +222,7 @@ const initialDecisions = [
 
 router.get("/platform/overview", async (_req, res) => {
   const data = GetPlatformOverviewResponse.parse({
-    platformName: "Northstar AI Platform",
+    platformName: "enlivio AI Platform",
     environment: "Azure · UK South / EU West",
     regionPolicy: "UK / Europe only",
     readinessScore: 61,

@@ -1,4 +1,4 @@
-# Northstar AI Platform Blueprint
+# enlivio AI Platform Blueprint
 
 An operational cockpit for designing and governing a repeatable Azure AI platform.
 

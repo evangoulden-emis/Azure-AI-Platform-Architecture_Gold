@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const ISSUER = "https://login.microsoftonline.com/northstar-pilot/v2.0";
-const AUDIENCE = "api://northstar-ai-gateway";
+const ISSUER = "https://login.microsoftonline.com/enlivio-pilot/v2.0";
+const AUDIENCE = "api://enlivio-ai-gateway";
 
 type PilotClaims = {
   iss: string;

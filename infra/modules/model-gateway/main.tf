@@ -3,11 +3,11 @@ variable "resource_group_name" { type = string }
 variable "backend_url" { type = string }
 
 resource "azurerm_api_management_api" "this" {
-  name                  = "northstar-ai-v1"
+  name                  = "enlivio-ai-v1"
   resource_group_name   = var.resource_group_name
   api_management_name   = var.api_management_name
   revision              = "1"
-  display_name          = "Northstar governed AI gateway"
+  display_name          = "enlivio governed AI gateway"
   path                  = ""
   protocols             = ["https"]
   subscription_required = false
