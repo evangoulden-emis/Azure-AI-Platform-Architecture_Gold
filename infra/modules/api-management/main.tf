@@ -7,6 +7,14 @@ variable "subnet_id" { type = string }
 variable "vnet_id" { type = string }
 variable "identity_id" { type = string }
 variable "tags" { type = map(string) }
+variable "sku_name" {
+  type    = string
+  default = "Developer_1"
+  validation {
+    condition     = can(regex("^(Consumption|Developer|Basic|Standard|Premium|Basicv2|Standardv2)_[0-9]+$", var.sku_name))
+    error_message = "sku_name must be in the form <Tier>_<Capacity>, e.g. Developer_1, Standard_2."
+  }
+}
 
 resource "azurerm_api_management" "this" {
   name                          = "${var.name}-apim"
@@ -14,7 +22,7 @@ resource "azurerm_api_management" "this" {
   resource_group_name           = var.resource_group_name
   publisher_name                = var.publisher_name
   publisher_email               = var.publisher_email
-  sku_name                      = "Developer_1"
+  sku_name                      = var.sku_name
   virtual_network_type          = "Internal"
   public_network_access_enabled = false
   virtual_network_configuration { subnet_id = var.subnet_id }

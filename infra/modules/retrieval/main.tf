@@ -5,6 +5,22 @@ variable "private_endpoint_subnet_id" { type = string }
 variable "blob_private_dns_zone_id" { type = string }
 variable "search_private_dns_zone_id" { type = string }
 variable "tags" { type = map(string) }
+variable "search_sku" {
+  type    = string
+  default = "basic"
+  validation {
+    condition     = contains(["free", "basic", "standard", "standard2", "standard3", "storage_optimized_l1", "storage_optimized_l2"], var.search_sku)
+    error_message = "search_sku must be a valid Azure AI Search SKU."
+  }
+}
+variable "semantic_search_sku" {
+  type    = string
+  default = "free"
+  validation {
+    condition     = contains(["free", "standard", "disabled"], var.semantic_search_sku)
+    error_message = "semantic_search_sku must be one of: free, standard, disabled."
+  }
+}
 
 resource "azurerm_storage_account" "source" {
   name                            = substr(replace("${var.name}data", "-", ""), 0, 24)
@@ -25,10 +41,10 @@ resource "azurerm_search_service" "this" {
   name                          = "${var.name}-search"
   resource_group_name           = var.resource_group_name
   location                      = var.location
-  sku                           = "basic"
+  sku                           = var.search_sku
   local_authentication_enabled  = false
   public_network_access_enabled = false
-  semantic_search_sku           = "free"
+  semantic_search_sku           = var.semantic_search_sku
   identity { type = "SystemAssigned" }
   tags = var.tags
 }

@@ -127,3 +127,73 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+variable "key_vault_sku_name" {
+  type        = string
+  description = "SKU for the platform Key Vault. One of: standard, premium."
+  default     = "standard"
+}
+variable "api_management_sku_name" {
+  type        = string
+  description = "SKU for the API Management gateway, in the form <Tier>_<Capacity>, e.g. Developer_1, Standard_2."
+  default     = "Developer_1"
+}
+variable "log_analytics_sku" {
+  type        = string
+  description = "SKU for the Log Analytics workspace."
+  default     = "PerGB2018"
+}
+variable "ai_foundry_sku_name" {
+  type        = string
+  description = "SKU for the Azure AI Foundry / Cognitive Services account. One of: F0, S0."
+  default     = "S0"
+}
+variable "search_sku" {
+  type        = string
+  description = "SKU for the Azure AI Search service."
+  default     = "basic"
+}
+variable "search_semantic_sku" {
+  type        = string
+  description = "Semantic search SKU for the Azure AI Search service. One of: free, standard, disabled."
+  default     = "free"
+}
+variable "cosmos_consistency_level" {
+  type        = string
+  description = "Consistency level for the Cosmos DB session store."
+  default     = "Session"
+}
+variable "cosmos_serverless_enabled" {
+  type        = bool
+  description = "Use consumption-based serverless throughput for the Cosmos DB session store instead of provisioned RU/s."
+  default     = true
+}
+variable "cosmos_vector_search_enabled" {
+  type        = bool
+  description = "Enable the EnableNoSQLVectorSearch capability on the Cosmos DB account for future retrieval/embedding use cases."
+  default     = false
+}
+variable "cosmos_session_ttl_seconds" {
+  type        = number
+  description = "Default TTL, in seconds, applied to items in the Cosmos DB sessions container."
+  default     = 86400
+}
+variable "redis_sku_name" {
+  type        = string
+  description = "SKU for the Redis cache. One of: Basic, Standard, Premium."
+  default     = "Standard"
+}
+variable "redis_family" {
+  type        = string
+  description = "SKU family for the Redis cache. C = Basic/Standard, P = Premium."
+  default     = "C"
+}
+variable "redis_capacity" {
+  type        = number
+  description = "Redis cache size. 0-6 for family C, 1-4 for family P."
+  default     = 1
+}
+variable "redis_active_directory_authentication_enabled" {
+  type        = bool
+  description = "Enable Entra ID data-plane authentication for Redis in place of access keys. Requires redis_family = \"P\" (Premium)."
+  default     = false
+}

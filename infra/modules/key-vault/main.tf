@@ -5,13 +5,21 @@ variable "tenant_id" { type = string }
 variable "private_endpoint_subnet_id" { type = string }
 variable "private_dns_zone_id" { type = string }
 variable "tags" { type = map(string) }
+variable "sku_name" {
+  type    = string
+  default = "standard"
+  validation {
+    condition     = contains(["standard", "premium"], var.sku_name)
+    error_message = "sku_name must be one of: standard, premium."
+  }
+}
 
 resource "azurerm_key_vault" "this" {
   name                          = substr(replace("${var.name}kv", "-", ""), 0, 24)
   location                      = var.location
   resource_group_name           = var.resource_group_name
   tenant_id                     = var.tenant_id
-  sku_name                      = "standard"
+  sku_name                      = var.sku_name
   rbac_authorization_enabled    = true
   public_network_access_enabled = false
   purge_protection_enabled      = true

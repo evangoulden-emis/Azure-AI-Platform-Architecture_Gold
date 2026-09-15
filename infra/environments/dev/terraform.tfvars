@@ -13,6 +13,14 @@ model_route_deployments = {
   approved-chat-standard = "gpt-4o-mini-approved-001"
 }
 
+# Optional SKU overrides (defaults shown). Can also be set via TF_VAR_<name> environment variables.
+# key_vault_sku_name      = "standard"
+# api_management_sku_name = "Developer_1"
+# log_analytics_sku       = "PerGB2018"
+# ai_foundry_sku_name     = "S0"
+# search_sku              = "basic"
+# search_semantic_sku     = "free"
+
 # workloads = {
 #   pilot-search = {
 #     client_id         = "00000000-0000-0000-0000-000000000000"

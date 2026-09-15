@@ -4,12 +4,20 @@ variable "resource_group_name" { type = string }
 variable "retention_days" { type = number }
 variable "diagnostic_resource_ids" { type = map(string) }
 variable "tags" { type = map(string) }
+variable "sku" {
+  type    = string
+  default = "PerGB2018"
+  validation {
+    condition     = contains(["Free", "PerNode", "Premium", "Standard", "Standalone", "CapacityReservation", "PerGB2018"], var.sku)
+    error_message = "sku must be one of: Free, PerNode, Premium, Standard, Standalone, CapacityReservation, PerGB2018."
+  }
+}
 
 resource "azurerm_log_analytics_workspace" "this" {
   name                = "${var.name}-logs"
   location            = var.location
   resource_group_name = var.resource_group_name
-  sku                 = "PerGB2018"
+  sku                 = var.sku
   retention_in_days   = var.retention_days
   tags                = var.tags
 }

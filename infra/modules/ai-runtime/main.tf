@@ -9,13 +9,21 @@ variable "private_dns_zone_id" { type = string }
 variable "foundry_api_private_dns_zone_id" { type = string }
 variable "foundry_notebooks_private_dns_zone_id" { type = string }
 variable "tags" { type = map(string) }
+variable "sku_name" {
+  type    = string
+  default = "S0"
+  validation {
+    condition     = contains(["F0", "S0"], var.sku_name)
+    error_message = "sku_name must be one of: F0, S0."
+  }
+}
 
 resource "azurerm_cognitive_account" "foundry" {
   name                          = "${var.name}-foundry"
   location                      = var.location
   resource_group_name           = var.resource_group_name
   kind                          = "AIServices"
-  sku_name                      = "S0"
+  sku_name                      = var.sku_name
   custom_subdomain_name         = "${var.name}-foundry"
   local_auth_enabled            = false
   public_network_access_enabled = false

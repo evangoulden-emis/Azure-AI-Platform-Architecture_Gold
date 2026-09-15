@@ -32,8 +32,10 @@ locals {
     "privatelink.api.azureml.ms",
     "privatelink.blob.core.windows.net",
     "privatelink.cognitiveservices.azure.com",
+    "privatelink.documents.azure.com",
     "privatelink.file.core.windows.net",
     "privatelink.notebooks.azure.net",
+    "privatelink.redis.cache.windows.net",
     "privatelink.search.windows.net",
     "privatelink.vaultcore.azure.net"
   ])

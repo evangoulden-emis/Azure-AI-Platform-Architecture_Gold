@@ -75,6 +75,7 @@ module "vault" {
   tenant_id                  = var.tenant_id
   private_endpoint_subnet_id = module.network.private_endpoint_subnet_id
   private_dns_zone_id        = module.network.private_dns_zone_ids["privatelink.vaultcore.azure.net"]
+  sku_name                   = var.key_vault_sku_name
   tags                       = local.tags
 }
 module "retrieval" {
@@ -85,7 +86,35 @@ module "retrieval" {
   private_endpoint_subnet_id = module.network.private_endpoint_subnet_id
   blob_private_dns_zone_id   = module.network.private_dns_zone_ids["privatelink.blob.core.windows.net"]
   search_private_dns_zone_id = module.network.private_dns_zone_ids["privatelink.search.windows.net"]
+  search_sku                 = var.search_sku
+  semantic_search_sku        = var.search_semantic_sku
   tags                       = local.tags
+}
+module "session_store" {
+  source                     = "../../modules/cosmos-db"
+  name                       = local.name
+  location                   = var.location
+  resource_group_name        = azurerm_resource_group.platform.name
+  private_endpoint_subnet_id = module.network.private_endpoint_subnet_id
+  private_dns_zone_id        = module.network.private_dns_zone_ids["privatelink.documents.azure.com"]
+  consistency_level          = var.cosmos_consistency_level
+  serverless_enabled         = var.cosmos_serverless_enabled
+  vector_search_enabled      = var.cosmos_vector_search_enabled
+  session_ttl_seconds        = var.cosmos_session_ttl_seconds
+  tags                       = local.tags
+}
+module "cache" {
+  source                                  = "../../modules/redis-cache"
+  name                                    = local.name
+  location                                = var.location
+  resource_group_name                     = azurerm_resource_group.platform.name
+  private_endpoint_subnet_id              = module.network.private_endpoint_subnet_id
+  private_dns_zone_id                     = module.network.private_dns_zone_ids["privatelink.redis.cache.windows.net"]
+  sku_name                                = var.redis_sku_name
+  family                                  = var.redis_family
+  capacity                                = var.redis_capacity
+  active_directory_authentication_enabled = var.redis_active_directory_authentication_enabled
+  tags                                    = local.tags
 }
 module "foundry" {
   source                                = "../../modules/ai-runtime"
@@ -99,6 +128,7 @@ module "foundry" {
   private_dns_zone_id                   = module.network.private_dns_zone_ids["privatelink.cognitiveservices.azure.com"]
   foundry_api_private_dns_zone_id       = module.network.private_dns_zone_ids["privatelink.api.azureml.ms"]
   foundry_notebooks_private_dns_zone_id = module.network.private_dns_zone_ids["privatelink.notebooks.azure.net"]
+  sku_name                              = var.ai_foundry_sku_name
   tags                                  = local.tags
 }
 module "apim" {
@@ -111,6 +141,7 @@ module "apim" {
   subnet_id           = module.network.apim_subnet_id
   vnet_id             = module.network.vnet_id
   identity_id         = var.platform_identity_resource_id
+  sku_name            = var.api_management_sku_name
   tags                = local.tags
 }
 module "gateway" {
@@ -148,6 +179,14 @@ resource "azurerm_role_assignment" "platform_search_service" {
   scope                = module.retrieval.search_service_id
   role_definition_name = "Search Service Contributor"
   principal_id         = var.platform_identity_principal_id
+}
+
+resource "azurerm_cosmosdb_sql_role_assignment" "platform_session_store" {
+  resource_group_name = azurerm_resource_group.platform.name
+  account_name        = module.session_store.name
+  role_definition_id  = "${module.session_store.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
+  principal_id        = var.platform_identity_principal_id
+  scope               = module.session_store.id
 }
 
 module "workloads" {
@@ -189,9 +228,12 @@ module "observability" {
   location            = var.location
   resource_group_name = azurerm_resource_group.platform.name
   retention_days      = var.log_retention_days
+  sku                 = var.log_analytics_sku
   diagnostic_resource_ids = {
     apim      = module.apim.id
     blob      = module.retrieval.blob_service_id
+    cache     = module.cache.id
+    cosmos    = module.session_store.id
     foundry   = module.foundry.id
     key_vault = module.vault.id
     search    = module.retrieval.search_service_id
